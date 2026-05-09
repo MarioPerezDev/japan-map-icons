@@ -422,7 +422,9 @@
     padding: 22px 0 0; border-top: 1px solid var(--rule);
     font-size: 13px; line-height: 1.6; color: var(--ink-soft);
   }
-  .footer-note ul { padding-left: 20px; margin: 8px 0 0; }
+  .footer-note strong { display: block; margin-bottom: 8px; }
+  .footer-note ul { padding-left: 18px; margin: 0; }
+  .footer-note li { margin-bottom: 4px; }
   .footer-note code {
     font-family: 'JetBrains Mono', monospace; font-size: 12px;
     background: rgba(43,37,35,0.05); padding: 1px 6px; border-radius: 4px;
@@ -521,7 +523,7 @@
   <div class="reference-table" id="reference-table"></div>
 </section>
 
-<p class="footer-note">
+<div class="footer-note">
   <strong style="color:var(--ink); font-weight:500;">How to use →</strong>
   <ul>
     <li>Each tile is a drop zone. Drop a PNG on it (or click to pick a file). The drawing's opaque bounding box is auto-detected and centered.</li>
@@ -530,7 +532,7 @@
     <li>Drawings live in this browser session — your PNGs aren't uploaded anywhere. Use <em>Download all</em> to grab the whole set as a single zip.</li>
     <li>Per the visual identity guidelines: dark line on transparent background. The category color comes from the container fill — drawings are placed as-is, no recoloring.</li>
   </ul>
-</p>
+</div>
 
 <input type="file" id="file-input" accept="image/png,image/svg+xml" style="display:none" />
 <div class="toast" id="toast"></div>
