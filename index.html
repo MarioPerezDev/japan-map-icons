@@ -1214,6 +1214,26 @@ function renameVariant(catId, slot, newLabel) {
   const trimmed = newLabel.trim();
   if (!trimmed || trimmed === v.label) return;
   v.label = trimmed;
+
+  // Derive new slug and de-duplicate if needed
+  let newSlug = slugify(trimmed);
+  if (!newSlug) newSlug = slot;
+  if (newSlug !== slot) {
+    const taken = slug => slug === cat.slug || cat.variants.some(u => u !== v && u.slug === slug);
+    if (taken(newSlug)) {
+      let n = 2;
+      while (taken(`${newSlug}-${n}`)) n++;
+      newSlug = `${newSlug}-${n}`;
+    }
+    // Migrate state to the new slot key
+    if (state[catId] && state[catId][slot] !== undefined) {
+      state[catId][newSlug] = state[catId][slot];
+      delete state[catId][slot];
+      saveState();
+    }
+    v.slug = newSlug;
+  }
+
   reindexCategories();
   saveCategories();
   renderStack();
