@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Japan Map Icons — drag, compose, download</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root { --paper:#EFEAE2; --ink:#2B2523; --ink-soft:#3A3532; --rule: rgba(43,37,35,0.12); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink); background: var(--paper);
+    min-height: 100vh; padding: 56px clamp(24px, 5vw, 80px) 80px;
+  }
+  header { max-width: 1280px; margin: 0 auto 36px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-soft); opacity: 0.7; margin: 0 0 12px;
+  }
+  h1 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 500; letter-spacing: -0.02em; margin: 0 0 14px; }
+  .lede { font-size: 15px; line-height: 1.55; color: var(--ink-soft); max-width: 64ch; margin: 0; }
+
+  /* Toolbar */
+  .toolbar {
+    max-width: 1280px; margin: 0 auto 24px;
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.45);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+  }
+  .toolbar .progress {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .toolbar .progress strong { color: var(--ink); font-weight: 500; }
+  .toolbar .spacer { flex: 1; }
+  .toolbar button {
+    font-family: 'Inter', system-ui, sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 14px; border-radius: 10px;
+    border: 1px solid var(--rule); background: transparent;
+    color: var(--ink); cursor: pointer;
+    transition: background 120ms;
+  }
+  .toolbar button:hover:not(:disabled) { background: rgba(43,37,35,0.06); }
+  .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .toolbar button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .toolbar button.primary:hover:not(:disabled) { background: var(--ink-soft); }
+
+  /* Reference table */
+  .reference {
+    max-width: 1280px; margin: 56px auto 0;
+    padding: 28px 32px;
+    background: rgba(255,255,255,0.40);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+  }
+  .reference-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+  .reference-table {
+    display: grid;
+    grid-template-columns: 32px minmax(180px, 1.2fr) 28px 70px 28px 70px minmax(220px, 1.6fr);
+    column-gap: 14px;
+    align-items: center;
+    font-size: 13.5px;
+  }
+  .reference-table .ref-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .reference-table .ref-cell {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(43,37,35,0.06);
+    color: var(--ink);
+  }
+  .reference-table .ref-cell.row-last { border-bottom: none; }
+  .ref-no { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); }
+  .ref-label { font-weight: 500; }
+  .ref-swatch {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid rgba(43,37,35,0.10);
+    justify-self: start;
+  }
+  .ref-hex { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink-soft); letter-spacing: 0.02em; }
+  .ref-mood { color: var(--ink-soft); font-style: italic; }
+  .seg-group {
+    display: inline-flex; padding: 3px; border-radius: 10px;
+    background: rgba(43,37,35,0.05);
+    border: 1px solid rgba(43,37,35,0.10);
+  }
+  .seg-group .seg {
+    font-family: 'Inter', system-ui, sans-serif; font-size: 12px; font-weight: 500;
+    padding: 6px 12px; border-radius: 7px;
+    background: transparent; border: none; color: var(--ink-soft);
+    cursor: pointer; transition: background 120ms, color 120ms;
+  }
+  .seg-group .seg:hover { color: var(--ink); }
+  .seg-group .seg.active {
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 1px 2px rgba(43,37,35,0.08);
+  }
+
+  /* Stack: one section per category, vertical */
+  .stack {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    gap: 28px;
+  }
+  .cat-section {
+    background: rgba(255,255,255,0.40);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 16px 18px 18px;
+  }
+  .cat-header {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 12px; margin-bottom: 14px;
+    border-bottom: 1px dashed rgba(43,37,35,0.10);
+  }
+  .cat-no {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-soft); letter-spacing: 0.04em;
+    width: 28px; flex-shrink: 0;
+  }
+  .cat-label {
+    font-size: 15px; font-weight: 500; letter-spacing: -0.005em;
+    flex: 1;
+  }
+  .cat-swatches {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .cat-swatch {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1px solid rgba(43,37,35,0.12);
+    cursor: pointer;
+    transition: transform 100ms, box-shadow 100ms;
+  }
+  .cat-swatch:hover { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(43,37,35,0.06); }
+  }
+  .cat-mood {
+    font-size: 11px; color: var(--ink-soft); opacity: 0.7;
+    font-style: italic; margin-left: 4px;
+    max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cat-delete {
+    background: none; border: none; padding: 4px 6px;
+    color: var(--ink-soft); opacity: 0.5; cursor: pointer;
+    font-size: 16px; line-height: 1; border-radius: 4px;
+    transition: background 120ms, opacity 120ms, color 120ms;
+  }
+  .cat-delete:hover { opacity: 1; background: #f4dcd6; color: #8a3a2a; }
+  .cat-row {
+    display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;
+  }
+  .cat-row .tile { width: 200px; }
+  .add-variant {
+    width: 200px;
+    height: 242px;
+    border-radius: 12px;
+    border: 1.5px dashed rgba(43,37,35,0.18);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    color: var(--ink-soft); opacity: 0.55;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: opacity 120ms, background 120ms, border-color 120ms;
+  }
+  .add-variant:hover { opacity: 0.95; background: rgba(43,37,35,0.03); border-color: rgba(43,37,35,0.28); }
+  .variant-remove {
+    position: absolute; top: 6px; right: 8px; z-index: 5;
+    background: none; border: none; padding: 0;
+    color: rgba(43,37,35,0.4);
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    transition: color 120ms;
+  }
+  .variant-remove:hover { color: rgba(43,37,35,0.85); }
+
+  .add-category {
+    display: block;
+    max-width: 1280px; margin: 24px auto 0;
+    padding: 18px;
+    border: 1.5px dashed rgba(43,37,35,0.18);
+    border-radius: 14px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    width: calc(100% - 0px);
+    transition: background 120ms, border-color 120ms, opacity 120ms;
+    opacity: 0.65;
+  }
+  .add-category:hover { opacity: 1; background: rgba(43,37,35,0.03); border-color: rgba(43,37,35,0.28); }
+
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(43,37,35,0.36);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 140ms;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 24px 26px 22px;
+    width: 440px; max-width: calc(100vw - 32px);
+    box-shadow: 0 22px 60px rgba(43,37,35,0.18);
+    transform: translateY(8px);
+    transition: transform 160ms;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0); }
+  .modal h3 { margin: 0 0 6px; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+  .modal p.modal-sub { margin: 0 0 22px; font-size: 12px; line-height: 1.55; color: var(--ink-soft); opacity: 0.75; }
+  .modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .modal-field label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); opacity: 0.7;
+  }
+  .modal-field input[type=text] {
+    border: 1px solid var(--rule); border-radius: 8px; padding: 9px 11px;
+    font: inherit; font-size: 14px;
+    background: rgba(255,255,255,0.55); color: var(--ink);
+  }
+  .modal-field input[type=text]:focus { outline: 2px solid rgba(43,37,35,0.18); border-color: rgba(43,37,35,0.4); }
+  .modal-field-row { display: flex; gap: 14px; }
+  .modal-field-row .modal-field { flex: 1; }
+  .modal-field input[type=color] {
+    width: 100%; height: 38px;
+    border: 1px solid var(--rule); border-radius: 8px;
+    background: rgba(255,255,255,0.55); padding: 2px; cursor: pointer;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal-actions button {
+    border: 1px solid var(--rule);
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px; padding: 8px 14px;
+    font: inherit; font-size: 13px; color: var(--ink);
+    cursor: pointer;
+  }
+  .modal-actions button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .modal-actions button:hover { background: rgba(43,37,35,0.06); }
+  .modal-actions button.primary:hover { background: rgba(43,37,35,0.85); }
+
+  /* Config JSON editor modal */
+  .modal.modal-wide { width: 720px; max-width: calc(100vw - 32px); }
+  .modal.modal-wide textarea {
+    width: 100%; box-sizing: border-box;
+    height: 60vh; min-height: 320px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.5;
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.6); color: var(--ink);
+    resize: vertical;
+    tab-size: 2;
+  }
+  .modal.modal-wide textarea:focus { outline: 2px solid rgba(43,37,35,0.18); border-color: rgba(43,37,35,0.4); }
+  .config-error {
+    margin: 10px 0 0; padding: 8px 12px;
+    background: #fbe9e3; border: 1px solid #e9b9aa; border-radius: 6px;
+    color: #8a3a2a; font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    display: none;
+  }
+  .config-error.show { display: block; }
+  .add-variant .plus-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Original grid kept (unused) for fallback */
+  .grid {
+    max-width: 1280px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 22px;
+  }
+  .tile {
+    background: rgba(255,255,255,0.40);
+    border: 1px solid var(--rule);
+    border-radius: 16px; padding: 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    position: relative;
+  }
+  .tile-frame {
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: background 120ms, border-color 120ms, transform 120ms;
+  }
+  .tile-frame.empty {
+    border: 1.5px dashed rgba(43,37,35,0.18);
+    cursor: pointer;
+    background: var(--paper) !important;
+    color: var(--ink-soft);
+  }
+  .tile-frame.empty .empty-circle {
+    position: absolute; inset: 6%;
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 16px; text-align: center;
+  }
+  .tile-frame.empty .plus {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.6;
+  }
+  .tile-frame.empty .hint {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .tile-frame.dragover {
+    transform: scale(0.98);
+    border-style: solid; border-width: 2px;
+    border-color: var(--ink);
+    background: rgba(43,37,35,0.04);
+  }
+  .tile-frame.dragover .plus { opacity: 1; transform: rotate(45deg); }
+  .tile-frame svg { width: 88%; height: 88%; }
+  .tile-frame.populated { cursor: pointer; }
+  .tile-frame.populated:hover .actions { opacity: 1; transform: translateY(0); }
+  .tile-frame.populated:hover .replace-badge { opacity: 1; }
+  .tile-frame.populated.dragover::after {
+    content: 'release to replace';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(43,37,35,0.78); color: var(--paper);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .replace-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(43,37,35,0.10);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft);
+    opacity: 0.55;
+    transition: opacity 140ms;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+  .replace-badge svg { width: 14px; height: 14px; flex: 0 0 auto; display: block; }
+
+  .actions {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    display: flex; gap: 6px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 140ms, transform 140ms;
+  }
+  .actions button {
+    flex: 1;
+    font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-weight: 500;
+    padding: 7px 8px; border-radius: 8px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(43,37,35,0.10);
+    color: var(--ink); cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 100ms;
+  }
+  .actions button:hover { background: rgba(255,255,255,1); }
+  .actions button.danger:hover { background: #f4dcd6; color: #8a3a2a; }
+
+  .tile-meta {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .tile-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  }
+  .tile-name {
+    font-size: 14px; font-weight: 500; letter-spacing: -0.005em;
+  }
+  .tile-no {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-soft); opacity: 0.6;
+  }
+  .tile-file {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-soft); opacity: 0.7;
+  }
+
+  .footer-note {
+    max-width: 1280px; margin: 40px auto 0;
+    padding: 22px 0 0; border-top: 1px solid var(--rule);
+    font-size: 13px; line-height: 1.6; color: var(--ink-soft);
+  }
+  .footer-note ul { padding-left: 20px; margin: 8px 0 0; }
+  .footer-note code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: rgba(43,37,35,0.05); padding: 1px 6px; border-radius: 4px;
+  }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--paper);
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms, transform 200ms;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body style="font-family: monospace">
+
+<header>
+  <p class="eyebrow">Production tool · drag → compose → download</p>
+  <h1>japanese inspired map icons</h1>
+  <p class="lede">Drag a hand-drawn PNG (transparent background, dark line) into any tile. The drawing is auto-centered onto its category container, and you can download the finished 128×128 PNG ready to upload to Google My Maps.</p>
+</header>
+
+<div class="toolbar">
+  <span class="progress"><strong id="progress-count">0</strong> of 13 ready</span>
+  <span class="spacer"></span>
+  <button id="btn-download-all" class="primary" disabled>Download all (zip)</button>
+  <button id="btn-edit-config">Edit config (JSON)</button>
+  <button id="btn-reset">Reset all</button>
+</div>
+
+<main class="stack" id="stack"></main>
+<button class="add-category" id="btn-add-category" type="button">+ New category</button>
+
+<div class="modal-backdrop" id="config-modal">
+  <div class="modal modal-wide">
+    <h3>Edit config</h3>
+    <p class="modal-sub">JSON describing every category and its variants. Edit and click Apply to replace the current set. Variants without a slug auto-derive one from the label.</p>
+    <textarea id="config-json" spellcheck="false" autocomplete="off"></textarea>
+    <div class="config-error" id="config-error"></div>
+    <div class="modal-actions">
+      <button type="button" id="config-modal-cancel">Cancel</button>
+      <button type="button" id="config-modal-download">Download</button>
+      <button type="button" id="config-modal-apply" class="primary">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="variant-modal">
+  <form class="modal" id="variant-modal-form" autocomplete="off">
+    <h3>Add variant</h3>
+    <p class="modal-sub" id="variant-modal-sub">Add a refinement to a category. Filename auto-letters (a, b, c…).</p>
+    <div class="modal-field">
+      <label for="variant-name" style="margin: 0px 0px 8px">Variant label</label>
+      <input type="text" id="variant-name" name="name" placeholder="e.g. with pastries, takeaway" required style="padding: 11px" />
+    </div>
+    <div class="modal-actions">
+      <button type="button" id="variant-modal-cancel">Cancel</button>
+      <button type="submit" class="primary">Add variant</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-backdrop" id="cat-modal">
+  <form class="modal" id="cat-modal-form" autocomplete="off">
+    <h3>New category</h3>
+    <p class="modal-sub">Define a new icon category. Filename slug auto-derives from the name.</p>
+    <div class="modal-field">
+      <label for="cat-name">Category name</label>
+      <input type="text" id="cat-name" name="name" placeholder="e.g. Bookstores" required />
+    </div>
+    <div class="modal-field-row">
+      <div class="modal-field">
+        <label for="cat-primary">Symbol (ink)</label>
+        <input type="color" id="cat-primary" name="primary" value="#2F3E46" />
+      </div>
+      <div class="modal-field">
+        <label for="cat-bg">Container (bg)</label>
+        <input type="color" id="cat-bg" name="bg" value="#C7D1D6" />
+      </div>
+    </div>
+    <div class="modal-field">
+      <label for="cat-mood">Mood (optional)</label>
+      <input type="text" id="cat-mood" name="mood" placeholder="e.g. Slate, paper, ink" />
+    </div>
+    <div class="modal-actions">
+      <button type="button" id="cat-modal-cancel">Cancel</button>
+      <button type="submit" class="primary">Add category</button>
+    </div>
+  </form>
+</div>
+
+<section class="reference">
+  <h2 class="reference-title">Category tokens</h2>
+  <div class="reference-table" id="reference-table"></div>
+</section>
+
+<p class="footer-note">
+  <strong style="color:var(--ink); font-weight:500;">How to use →</strong>
+  <ul>
+    <li>Each tile is a drop zone. Drop a PNG on it (or click to pick a file). The drawing's opaque bounding box is auto-detected and centered.</li>
+    <li>Hover a populated tile for <em>Download PNG</em>, <em>Download SVG</em>, and <em>Replace</em>. PNGs export at 512×512.</li>
+    <li>Use the <em>With circle</em> / <em>Icon only</em> toggle in the toolbar to choose whether downloads include the colored container or just the line drawing on transparent background.</li>
+    <li>Drawings live in this browser session — your PNGs aren't uploaded anywhere. Use <em>Download all</em> to grab the whole set as a single zip.</li>
+    <li>Per the visual identity guidelines: dark line on transparent background. The category color comes from the container fill — drawings are placed as-is, no recoloring.</li>
+  </ul>
+</p>
+
+<input type="file" id="file-input" accept="image/png,image/svg+xml" style="display:none" />
+<div class="toast" id="toast"></div>
+
+<!-- JSZip for the bundle download -->
+<script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+// Default seed. Each category now has `slug` and a `variants` array.
+// `no` and `file` remain as derived/cached fields; they are recomputed on every
+// reorder, add, or delete so they always match the array index.
+const DEFAULT_CATEGORIES = [
+  { id:'kissaten',      label:'Kissaten / Cafés',       slug:'kissaten',      primary:'#6F4E37', bg:'#D8C2AE', mood:'Coffee, walnut wood, roasted tones' },
+  { id:'library',       label:'Libraries / Stationery', slug:'library',       primary:'#2F3E46', bg:'#C7D1D6', mood:'Graphite, ink, books' },
+  { id:'shrine',        label:'Shrines / Temples',      slug:'shrine',        primary:'#B64A3A', bg:'#DFC2BA', mood:'Hanko seal red, torii gates' },
+  { id:'nature',        label:'Nature / Gardens',       slug:'nature',        primary:'#7C8A62', bg:'#D4DBC8', mood:'Dry matcha, moss, late autumn' },
+  { id:'viewpoint',     label:'Sunset / Viewpoints',    slug:'viewpoint',     primary:'#D68C45', bg:'#E9D1B5', mood:'Golden hour, amber light' },
+  { id:'walk',          label:'Walking Neighborhoods',  slug:'walk',          primary:'#8A817C', bg:'#DDD7D2', mood:'Stone, pavement, quiet streets' },
+  { id:'design',        label:'Design / Shops',         slug:'design',        primary:'#A08F7C', bg:'#E3D9CF', mood:'Linen, ceramics, soft interiors' },
+  { id:'food',          label:'Food',                   slug:'food',          primary:'#C46A5A', bg:'#E8C7C0', mood:'Ramen warmth, izakaya glow' },
+  { id:'bar',           label:'Bars / Nightlife',       slug:'bar',           primary:'#34495E', bg:'#C8D2DA', mood:'Wet neon, midnight blue' },
+  { id:'otaku',         label:'Otaku / Retro',          slug:'otaku',         primary:'#6D597A', bg:'#D7CFDC', mood:'Faded electric purple' },
+  { id:'onsen',         label:'Onsen / Ryokan',         slug:'onsen',         primary:'#89A7B1', bg:'#D9E5E8', mood:'Steam, mist, mineral water' },
+  { id:'transport',     label:'Transport / Stations',   slug:'transport',     primary:'#5C677D', bg:'#D4D9E2', mood:'Steel, rail infrastructure' },
+  { id:'accommodation', label:'Accommodation',          slug:'accommodation', primary:'#9C7B6E', bg:'#E2D3CB', mood:'Tatami, warm wood, lodging' },
+].map(c => ({ ...c, variants: [] }));
+
+const LS_CATS  = 'mapicons.categories.v1';
+const LS_STATE = 'mapicons.state.v1';
+
+// Load persisted categories if present, otherwise clone defaults.
+let CATEGORIES = (() => {
+  try {
+    const raw = localStorage.getItem(LS_CATS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map(c => ({ ...c, variants: Array.isArray(c.variants) ? c.variants : [] }));
+      }
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+})();
+
+// Recompute derived fields (`no`, `file`) and variant filenames whenever the
+// array shape changes. Call this after every CRUD action.
+function reindexCategories() {
+  CATEGORIES.forEach((cat, i) => {
+    cat.no = String(i + 1).padStart(2, '0');
+    // Default category-level file (when there are no variants, the export uses NN-slug.png)
+    cat.file = `${cat.no}-${cat.slug}.png`;
+    cat.variants = cat.variants || [];
+    cat.variants.forEach((v, j) => {
+      const letter = String.fromCharCode(97 + j); // a, b, c…
+      const tail = v.slug && v.slug !== cat.slug ? `-${v.slug}` : '';
+      v.file = `${cat.no}${letter}-${cat.slug}${tail}.png`;
+    });
+  });
+}
+reindexCategories();
+
+function saveCategories() {
+  try { localStorage.setItem(LS_CATS, JSON.stringify(CATEGORIES)); } catch (e) {}
+}
+
+// State shape (variant-aware):
+//   { [catId]: { [variantSlug | '_default']: { dataUrl, bbox, placement } } }
+// The legacy flat shape `{ [catId]: payload }` from the previous version is
+// migrated on load by treating it as the `_default` slot.
+const state = (() => {
+  try {
+    const raw = localStorage.getItem(LS_STATE);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+    const out = {};
+    for (const [catId, val] of Object.entries(parsed)) {
+      if (val && typeof val === 'object' && 'dataUrl' in val) {
+        // Legacy flat payload — migrate to default slot
+        out[catId] = { _default: val };
+      } else {
+        out[catId] = val || {};
+      }
+    }
+    return out;
+  } catch (e) { return {}; }
+})();
+
+function saveState() {
+  try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
+}
+
+// Helpers used by the rest of the app while we migrate consumers off the old
+// flat shape one call site at a time.
+function getDefaultPayload(catId) {
+  const slot = state[catId];
+  return slot && slot._default ? slot._default : null;
+}
+function setDefaultPayload(catId, payload) {
+  if (!state[catId]) state[catId] = {};
+  if (payload == null) delete state[catId]._default;
+  else state[catId]._default = payload;
+  saveState();
+}
+let pendingPickerCategory = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function computeBbox(dataUrl) {
+  const img = await loadImage(dataUrl);
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, img.width, img.height).data;
+  let minX = img.width, minY = img.height, maxX = 0, maxY = 0;
+  let any = false;
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      const a = data[(y * img.width + x) * 4 + 3];
+      if (a > 30) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        any = true;
+      }
+    }
+  }
+  if (!any) {
+    // fallback: assume opaque whole image (e.g. PNG with white bg)
+    minX = 0; minY = 0; maxX = img.width - 1; maxY = img.height - 1;
+  }
+  return { minX, minY, maxX, maxY, w: img.width, h: img.height };
+}
+
+function placementFromBbox(bbox) {
+  const cx = (bbox.minX + bbox.maxX) / 2;
+  const cy = (bbox.minY + bbox.maxY) / 2;
+  const sw = bbox.maxX - bbox.minX;
+  const sh = bbox.maxY - bbox.minY;
+  const targetSize = 150;                               // symbol bounding-box target inside 256 viewBox
+  const scale = targetSize / Math.max(sw, sh);
+  return {
+    width: bbox.w * scale,
+    height: bbox.h * scale,
+    x: 128 - cx * scale,
+    y: 128 - cy * scale,
+  };
+}
+
+function stampSvg(cat, payload, displaySize, opts = {}) {
+  const noBg = opts.noBg;
+  if (!payload) {
+    return `
+      <svg viewBox="0 0 256 256" width="${displaySize}" height="${displaySize}">
+        ${noBg ? '' : `<circle cx="128" cy="128" r="120" fill="${cat.bg}"/>`}
+      </svg>
+    `;
+  }
+  const p = payload.placement;
+  const ringStroke = opts.ring
+    ? `<circle cx="128" cy="128" r="119" fill="none" stroke="${cat.primary}" stroke-opacity="0.30" stroke-width="2"/>`
+    : '';
+  const bg = noBg ? '' : `<circle cx="128" cy="128" r="120" fill="${cat.bg}"/>`;
+  return `
+    <svg viewBox="0 0 256 256" width="${displaySize}" height="${displaySize}" xmlns="http://www.w3.org/2000/svg">
+      ${bg}
+      <image href="${payload.dataUrl}"
+             x="${p.x.toFixed(2)}" y="${p.y.toFixed(2)}"
+             width="${p.width.toFixed(2)}" height="${p.height.toFixed(2)}"
+             preserveAspectRatio="xMidYMid meet"/>
+      ${ringStroke}
+    </svg>
+  `;
+}
+
+async function exportPng(cat, payload, size = 128, opts = {}) {
+  const svgString = stampSvg(cat, payload, size, opts).trim();
+  const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await loadImage(url);
+    const c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    c.getContext('2d').drawImage(img, 0, 0, size, size);
+    return await new Promise(res => c.toBlob(b => res(b), 'image/png'));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function exportSvg(cat, payload, opts = {}) {
+  // Convert image href (data URL) to embedded so the SVG is self-contained
+  return stampSvg(cat, payload, 256, opts).trim();
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function setIcon(catId, file) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Drop a PNG or SVG file');
+    return;
+  }
+  const dataUrl = await fileToDataUrl(file);
+  const bbox = await computeBbox(dataUrl);
+  const placement = placementFromBbox(bbox);
+  setDefaultPayload(catId, { dataUrl, bbox, placement });
+  renderTile(catId);
+  updateProgress();
+  showToast(`${CATEGORIES.find(c => c.id === catId).label} ready`);
+}
+
+function clearIcon(catId) {
+  setDefaultPayload(catId, null);
+  renderTile(catId);
+  updateProgress();
+}
+
+function getPayload(catId, slot = '_default') {
+  const bucket = state[catId];
+  return bucket && bucket[slot] ? bucket[slot] : null;
+}
+function setPayload(catId, slot, payload) {
+  if (!state[catId]) state[catId] = {};
+  if (payload == null) delete state[catId][slot];
+  else state[catId][slot] = payload;
+  saveState();
+}
+
+// Returns slot identifier and display info for the default plus every variant
+// of a category. Variants render after the default.
+function slotsFor(cat) {
+  // Categories start empty; tiles only exist for explicit variants.
+  return cat.variants.map(v => ({ slot: v.slug, label: v.label, file: v.file, variant: v }));
+}
+
+async function setIcon(catId, file, slot = '_default') {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Drop a PNG or SVG file');
+    return;
+  }
+  const dataUrl = await fileToDataUrl(file);
+  const bbox = await computeBbox(dataUrl);
+  const placement = placementFromBbox(bbox);
+  setPayload(catId, slot, { dataUrl, bbox, placement });
+  renderTile(catId, slot);
+  updateProgress();
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const slotName = slot === '_default' ? cat.label : `${cat.label} · ${slot}`;
+  showToast(`${slotName} ready`);
+}
+
+function clearIcon(catId, slot = '_default') {
+  setPayload(catId, slot, null);
+  renderTile(catId, slot);
+  updateProgress();
+}
+
+// All populated [catId, slot] pairs across the whole set.
+function populatedSlots() {
+  const out = [];
+  CATEGORIES.forEach(cat => {
+    slotsFor(cat).forEach(s => {
+      if (getPayload(cat.id, s.slot)) out.push({ cat, slot: s.slot, label: s.label, file: s.file });
+    });
+  });
+  return out;
+}
+
+function tileKey(catId, slot) { return `${catId}__${slot}`; }
+
+function renderTile(catId, slot = '_default') {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const tile = document.querySelector(`[data-tile-key="${tileKey(catId, slot)}"]`);
+  if (!tile) return;
+  const frame = tile.querySelector('.tile-frame');
+  const payload = getPayload(catId, slot);
+  const isVariant = slot !== '_default';
+  const removeBtn = isVariant
+    ? `<button class="variant-remove" data-act="delete-variant" title="Delete variant">×</button>`
+    : '';
+
+  if (payload) {
+    frame.classList.remove('empty');
+    frame.classList.add('populated');
+    frame.style.background = '';
+    frame.innerHTML = `
+      ${stampSvg(cat, payload, 220)}
+      <span class="replace-badge" title="Drop a new PNG or click to replace">
+        <svg viewBox="-3 -3 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
+        </svg>
+      </span>
+      <div class="actions">
+        <button data-act="png">PNG</button>
+        <button data-act="svg">SVG</button>
+        <button data-act="replace" class="danger">Replace</button>
+      </div>
+    `;
+  } else {
+    frame.classList.add('empty');
+    frame.classList.remove('populated');
+    frame.style.background = '';
+    frame.innerHTML = `
+      <div class="empty-circle" style="background:${cat.bg};">
+        <span class="plus">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               style="transition: transform 140ms;">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </span>
+        <span class="hint">drop PNG · or click</span>
+      </div>
+    `;
+  }
+}
+
+function updateProgress() {
+  const ready = populatedSlots().length;
+  document.getElementById('progress-count').textContent = ready;
+  document.getElementById('btn-download-all').disabled = ready === 0;
+}
+
+async function handleAction(catId, slot, act) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const payload = getPayload(catId, slot);
+  // Delete-variant must work even when the slot has no drawing yet.
+  if (!payload && act !== 'delete-variant' && act !== 'replace') return;
+  const slotInfo = slotsFor(cat).find(s => s.slot === slot);
+  const baseFile = slotInfo ? slotInfo.file : cat.file;
+
+  if (act === 'png') {
+    const blob = await exportPng(cat, payload, 512);
+    downloadBlob(blob, baseFile);
+    showToast(`Saved ${baseFile}`);
+  } else if (act === 'svg') {
+    const svg = exportSvg(cat, payload);
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const fname = baseFile.replace('.png', '.svg');
+    downloadBlob(blob, fname);
+    showToast(`Saved ${fname}`);
+  } else if (act === 'replace') {
+    pendingPicker = { catId, slot };
+    document.getElementById('file-input').click();
+  } else if (act === 'delete-variant') {
+    if (slot === '_default') return;
+    const variant = cat.variants.find(v => v.slug === slot);
+    const label = variant ? variant.label : slot;
+    setPayload(catId, slot, null);
+    cat.variants = cat.variants.filter(v => v.slug !== slot);
+    reindexCategories();
+    saveCategories();
+    renderStack();
+    updateProgress();
+    showToast(`Deleted variant “${label}”`);
+  }
+}
+
+async function downloadAll() {
+  const ready = populatedSlots();
+  if (!ready.length) return;
+  showToast('Bundling…');
+  const zip = new JSZip();
+  for (const item of ready) {
+    const blob = await exportPng(item.cat, getPayload(item.cat.id, item.slot), 512);
+    zip.file(item.file, blob);
+  }
+  const out = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(out, 'japan-map-icons.zip');
+  showToast(`Saved ${ready.length} icon${ready.length === 1 ? '' : 's'}`);
+}
+
+let pendingPicker = null; // { catId, slot }
+
+function setupTile(catId, slot) {
+  const tile = document.querySelector(`[data-tile-key="${tileKey(catId, slot)}"]`);
+  if (!tile) return;
+  const frame = tile.querySelector('.tile-frame');
+
+  // Variant remove × lives outside the frame (on .tile), so wire it here.
+  const removeBtn = tile.querySelector(':scope > .variant-remove');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      handleAction(catId, slot, 'delete-variant');
+    });
+  }
+
+  frame.addEventListener('dragenter', e => { e.preventDefault(); frame.classList.add('dragover'); });
+  frame.addEventListener('dragover',  e => { e.preventDefault(); frame.classList.add('dragover'); });
+  frame.addEventListener('dragleave', e => { if (e.target === frame) frame.classList.remove('dragover'); });
+  frame.addEventListener('drop', async e => {
+    e.preventDefault();
+    frame.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) await setIcon(catId, file, slot);
+  });
+
+  frame.addEventListener('click', e => {
+    const actBtn = e.target.closest('button[data-act]');
+    if (actBtn) {
+      e.stopPropagation();
+      handleAction(catId, slot, actBtn.dataset.act);
+      return;
+    }
+    pendingPicker = { catId, slot };
+    document.getElementById('file-input').click();
+  });
+}
+
+function tileMarkup(cat, slotInfo) {
+  const isVariant = slotInfo.slot !== '_default';
+  const removeBtn = isVariant
+    ? `<button class="variant-remove" data-act="delete-variant" title="Delete variant">×</button>`
+    : '';
+  return `
+    <div class="tile" data-tile-key="${tileKey(cat.id, slotInfo.slot)}">
+      ${removeBtn}
+      <div class="tile-frame empty"></div>
+      <div class="tile-meta">
+        <div class="tile-row">
+          <span class="tile-name">${slotInfo.label}</span>
+          <span class="tile-no">${cat.no}${isVariant ? slotInfo.file.match(/^\d+([a-z])/)?.[1] || '' : ''}</span>
+        </div>
+        <span class="tile-file">${slotInfo.file}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderStack() {
+  document.getElementById('stack').innerHTML = CATEGORIES.map(cat => {
+    const tiles = slotsFor(cat).map(s => tileMarkup(cat, s)).join('');
+    return `
+      <section class="cat-section" data-cat-section="${cat.id}">
+        <header class="cat-header">
+          <span class="cat-no">${cat.no}</span>
+          <span class="cat-label">${cat.label}</span>
+          <span class="cat-swatches" title="ink · container — click to copy">
+            <span class="cat-swatch" data-copy-color="${cat.primary}" style="background:${cat.primary}" title="${cat.primary} — click to copy"></span>
+            <span class="cat-swatch" data-copy-color="${cat.bg}" style="background:${cat.bg}" title="${cat.bg} — click to copy"></span>
+          </span>
+          <span class="cat-mood">${cat.mood}</span>
+          <button class="cat-delete" data-cat-delete="${cat.id}" title="Delete category" aria-label="Delete category">×</button>
+        </header>
+        <div class="cat-row">
+          ${tiles}
+          <button class="add-variant" data-add-variant="${cat.id}" title="Add variant">
+            <span class="plus-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <span>add variant</span>
+          </button>
+        </div>
+      </section>
+    `;
+  }).join('');
+
+  CATEGORIES.forEach(cat => {
+    slotsFor(cat).forEach(s => {
+      renderTile(cat.id, s.slot);
+      setupTile(cat.id, s.slot);
+    });
+  });
+
+  // Wire add-variant buttons
+  document.querySelectorAll('[data-add-variant]').forEach(btn => {
+    btn.addEventListener('click', () => addVariantPrompt(btn.dataset.addVariant));
+  });
+  // Wire delete-category buttons
+  document.querySelectorAll('[data-cat-delete]').forEach(btn => {
+    btn.addEventListener('click', () => deleteCategory(btn.dataset.catDelete));
+  });
+  // Wire color swatch copy
+  document.querySelectorAll('[data-copy-color]').forEach(sw => {
+    sw.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const color = sw.dataset.copyColor;
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(color);
+        ok = true;
+      } catch (err) {
+        // Fallback: textarea + execCommand (works in sandboxed iframes)
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = color;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          ok = document.execCommand('copy');
+          ta.remove();
+        } catch (err2) { ok = false; }
+      }
+      showToast(ok ? `Copied ${color}` : `Copy blocked — value: ${color}`);
+    });
+  });
+}
+renderStack();
+
+// Category CRUD ----------------------------------------------------
+function openCategoryModal() {
+  const modal = document.getElementById('cat-modal');
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('cat-name').focus(), 60);
+}
+function closeCategoryModal() {
+  document.getElementById('cat-modal').classList.remove('open');
+  document.getElementById('cat-modal-form').reset();
+}
+
+function addCategory({ name, primary, bg, mood }) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) { showToast('Name required'); return false; }
+  let slug = slugify(trimmed);
+  if (!slug) { showToast('Invalid name'); return false; }
+  let id = slug, n = 2;
+  while (CATEGORIES.some(c => c.id === id)) { id = `${slug}-${n++}`; }
+  if (id !== slug) slug = id;
+  CATEGORIES.push({
+    id, slug, label: trimmed,
+    primary: primary || '#2F3E46',
+    bg: bg || '#C7D1D6',
+    mood: (mood || '').trim(),
+    variants: [],
+  });
+  reindexCategories();
+  saveCategories();
+  renderStack();
+  if (typeof buildReferenceTable === 'function') buildReferenceTable();
+  updateProgress();
+  showToast(`Added “${trimmed}”`);
+  return true;
+}
+
+function deleteCategory(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) return;
+  const slotCount = slotsFor(cat).filter(s => getPayload(catId, s.slot)).length;
+  const tail = slotCount ? ` (${slotCount} drawing${slotCount === 1 ? '' : 's'} will be lost)` : '';
+  if (!confirm(`Delete “${cat.label}”?${tail}`)) return;
+  CATEGORIES = CATEGORIES.filter(c => c.id !== catId);
+  delete state[catId];
+  reindexCategories();
+  saveCategories();
+  saveState();
+  renderStack();
+  if (typeof buildReferenceTable === 'function') buildReferenceTable();
+  updateProgress();
+}
+
+document.getElementById('btn-add-category').addEventListener('click', openCategoryModal);
+document.getElementById('cat-modal-cancel').addEventListener('click', closeCategoryModal);
+document.getElementById('cat-modal').addEventListener('click', e => {
+  if (e.target.id === 'cat-modal') closeCategoryModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('cat-modal').classList.contains('open')) closeCategoryModal();
+});
+document.getElementById('cat-modal-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target;
+  const ok = addCategory({
+    name: f.name.value,
+    primary: f.primary.value,
+    bg: f.bg.value,
+    mood: f.mood.value,
+  });
+  if (ok) closeCategoryModal();
+});
+
+// Variant CRUD ------------------------------------------------------
+function slugify(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+}
+
+let pendingVariantCatId = null;
+function addVariantPrompt(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) return;
+  pendingVariantCatId = catId;
+  document.getElementById('variant-modal-sub').textContent =
+    `Adding a variant to “${cat.label}”. Filename auto-letters (a, b, c…).`;
+  document.getElementById('variant-modal').classList.add('open');
+  setTimeout(() => document.getElementById('variant-name').focus(), 60);
+}
+function closeVariantModal() {
+  document.getElementById('variant-modal').classList.remove('open');
+  document.getElementById('variant-modal-form').reset();
+  pendingVariantCatId = null;
+}
+function commitVariant(rawLabel) {
+  const cat = CATEGORIES.find(c => c.id === pendingVariantCatId);
+  if (!cat) return false;
+  const label = (rawLabel || '').trim();
+  if (!label) { showToast('Label required'); return false; }
+  let slug = slugify(label);
+  if (!slug) { showToast('Invalid label'); return false; }
+  if (cat.variants.some(v => v.slug === slug) || slug === cat.slug) {
+    let n = 2;
+    while (cat.variants.some(v => v.slug === `${slug}-${n}`)) n++;
+    slug = `${slug}-${n}`;
+  }
+  cat.variants.push({ slug, label });
+  reindexCategories();
+  saveCategories();
+  renderStack();
+  updateProgress();
+  showToast(`Added “${label}”`);
+  return true;
+}
+document.getElementById('variant-modal-cancel').addEventListener('click', closeVariantModal);
+document.getElementById('variant-modal').addEventListener('click', e => {
+  if (e.target.id === 'variant-modal') closeVariantModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('variant-modal').classList.contains('open')) closeVariantModal();
+});
+document.getElementById('variant-modal-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const ok = commitVariant(e.target.name.value);
+  if (ok) closeVariantModal();
+});
+
+// File picker
+document.getElementById('file-input').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (file && pendingPicker) {
+    await setIcon(pendingPicker.catId, file, pendingPicker.slot);
+  }
+  pendingPicker = null;
+  e.target.value = '';
+});
+
+// Toolbar
+document.getElementById('btn-download-all').addEventListener('click', downloadAll);
+
+// --- Config JSON editor ---
+function currentConfigJson() {
+  const out = CATEGORIES.map(c => ({
+    id: c.id, slug: c.slug, label: c.label,
+    primary: c.primary, bg: c.bg, mood: c.mood || '',
+    variants: (c.variants || []).map(v => ({ slug: v.slug, label: v.label })),
+  }));
+  return JSON.stringify(out, null, 2);
+}
+function openConfigModal() {
+  document.getElementById('config-json').value = currentConfigJson();
+  document.getElementById('config-error').classList.remove('show');
+  document.getElementById('config-modal').classList.add('open');
+  setTimeout(() => document.getElementById('config-json').focus(), 60);
+}
+function closeConfigModal() {
+  document.getElementById('config-modal').classList.remove('open');
+}
+function showConfigError(msg) {
+  const el = document.getElementById('config-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function validateAndNormalizeConfig(raw) {
+  let parsed;
+  try { parsed = JSON.parse(raw); }
+  catch (e) { throw new Error(`Invalid JSON: ${e.message}`); }
+  if (!Array.isArray(parsed)) throw new Error('Top level must be an array of categories.');
+  const seenIds = new Set();
+  return parsed.map((c, i) => {
+    if (!c || typeof c !== 'object') throw new Error(`Category #${i + 1} must be an object.`);
+    const label = (c.label || '').toString().trim();
+    if (!label) throw new Error(`Category #${i + 1}: "label" is required.`);
+    let slug = (c.slug || '').toString().trim() || slugify(label);
+    if (!slug) throw new Error(`Category #${i + 1} ("${label}"): could not derive slug.`);
+    let id = (c.id || '').toString().trim() || slug;
+    if (seenIds.has(id)) throw new Error(`Duplicate category id "${id}".`);
+    seenIds.add(id);
+    const primary = (c.primary || '#2F3E46').toString();
+    const bg = (c.bg || '#C7D1D6').toString();
+    const mood = (c.mood || '').toString();
+    const variants = Array.isArray(c.variants) ? c.variants : [];
+    const seenVar = new Set();
+    const cleanVariants = variants.map((v, j) => {
+      if (!v || typeof v !== 'object') throw new Error(`Category "${label}" variant #${j + 1} must be an object.`);
+      const vLabel = (v.label || '').toString().trim();
+      if (!vLabel) throw new Error(`Category "${label}" variant #${j + 1}: "label" is required.`);
+      let vSlug = (v.slug || '').toString().trim() || slugify(vLabel);
+      if (!vSlug) throw new Error(`Category "${label}" variant #${j + 1}: could not derive slug.`);
+      if (seenVar.has(vSlug)) throw new Error(`Category "${label}": duplicate variant slug "${vSlug}".`);
+      seenVar.add(vSlug);
+      return { slug: vSlug, label: vLabel };
+    });
+    return { id, slug, label, primary, bg, mood, variants: cleanVariants };
+  });
+}
+function applyConfig() {
+  const raw = document.getElementById('config-json').value;
+  let next;
+  try { next = validateAndNormalizeConfig(raw); }
+  catch (e) { showConfigError(e.message); return; }
+  // Drop state for categories or variant slots that no longer exist.
+  const validCatIds = new Set(next.map(c => c.id));
+  Object.keys(state).forEach(catId => {
+    if (!validCatIds.has(catId)) { delete state[catId]; return; }
+    const cat = next.find(c => c.id === catId);
+    const validSlots = new Set(['_default', ...cat.variants.map(v => v.slug)]);
+    Object.keys(state[catId]).forEach(slot => {
+      if (!validSlots.has(slot)) delete state[catId][slot];
+    });
+  });
+  CATEGORIES.length = 0;
+  next.forEach(c => CATEGORIES.push(c));
+  reindexCategories();
+  saveCategories();
+  saveState();
+  renderStack();
+  if (typeof buildReferenceTable === 'function') buildReferenceTable();
+  updateProgress();
+  closeConfigModal();
+  showToast(`Updated ${CATEGORIES.length} categor${CATEGORIES.length === 1 ? 'y' : 'ies'}`);
+}
+document.getElementById('btn-edit-config').addEventListener('click', openConfigModal);
+document.getElementById('config-modal-cancel').addEventListener('click', closeConfigModal);
+document.getElementById('config-modal-apply').addEventListener('click', applyConfig);
+document.getElementById('config-modal-download').addEventListener('click', () => {
+  const json = currentConfigJson();
+  const blob = new Blob([json], { type: 'application/json' });
+  downloadBlob(blob, 'japan-map-icons-config.json');
+  showToast('Config downloaded');
+});
+document.getElementById('config-modal').addEventListener('click', e => {
+  if (e.target.id === 'config-modal') closeConfigModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('config-modal').classList.contains('open')) closeConfigModal();
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (!populatedSlots().length) return;
+  if (!confirm('Clear all drawings? This cannot be undone.')) return;
+  CATEGORIES.forEach(c => slotsFor(c).forEach(s => clearIcon(c.id, s.slot)));
+});
+
+// Bootstrap kissaten from the on-disk reference so the tool starts populated
+(async () => {
+  try {
+    const res = await fetch('reference-kissaten.png');
+    const blob = await res.blob();
+    const file = new File([blob], 'reference-kissaten.png', { type: 'image/png' });
+    await setIcon('kissaten', file);
+  } catch (e) { /* if reference is missing that's fine */ }
+})();
+
+// Build reference table
+(function buildReference() {
+  const headers = `
+    <div class="ref-head">No.</div>
+    <div class="ref-head">Category</div>
+    <div class="ref-head" style="grid-column: span 2">Symbol (ink)</div>
+    <div class="ref-head" style="grid-column: span 2">Container (bg)</div>
+    <div class="ref-head">Mood</div>
+  `;
+  const rows = CATEGORIES.map((cat, i) => {
+    const last = i === CATEGORIES.length - 1 ? ' row-last' : '';
+    return `
+      <div class="ref-cell ref-no${last}">${cat.no}</div>
+      <div class="ref-cell ref-label${last}">${cat.label}</div>
+      <div class="ref-cell${last}"><div class="ref-swatch" style="background:${cat.primary}"></div></div>
+      <div class="ref-cell ref-hex${last}">${cat.primary.toUpperCase()}</div>
+      <div class="ref-cell${last}"><div class="ref-swatch" style="background:${cat.bg}"></div></div>
+      <div class="ref-cell ref-hex${last}">${cat.bg.toUpperCase()}</div>
+      <div class="ref-cell ref-mood${last}">${cat.mood}</div>
+    `;
+  }).join('');
+  const tbl = document.getElementById('reference-table');
+  if (tbl) tbl.innerHTML = headers + rows;
+})();
+</script>
+
+</body>
+</html>
+
+<style id="__om-edit-overrides">
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { background-color: rgba(244, 220, 214, 0) !important }
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { border-width: 0px 1px 1px !important }
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { border-width: 0px 0px 1px 1px !important }
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { border-style: none !important }
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { border-color: rgba(138, 58, 42, 0) !important }
+#stack [data-tile-key="kissaten__cafe"] >:is(button,input,textarea) { border-width: 0px !important }
+</style>
