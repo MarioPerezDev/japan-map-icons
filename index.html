@@ -395,6 +395,19 @@
   .tile-name {
     font-size: 14px; font-weight: 500; letter-spacing: -0.005em;
   }
+  .tile-name-editable {
+    cursor: text; border-radius: 4px;
+    transition: background 100ms;
+  }
+  .tile-name-editable:hover { background: rgba(43,37,35,0.07); padding: 0 3px; margin: 0 -3px; }
+  .tile-name-input {
+    font-size: 14px; font-weight: 500; letter-spacing: -0.005em;
+    border: 1px solid rgba(43,37,35,0.3); border-radius: 6px;
+    padding: 1px 5px; background: rgba(255,255,255,0.75);
+    color: var(--ink); width: 100%; box-sizing: border-box;
+    font-family: inherit; outline: none;
+  }
+  .tile-name-input:focus { border-color: rgba(43,37,35,0.5); background: #fff; }
   .tile-no {
     font-family: 'JetBrains Mono', monospace; font-size: 10px;
     color: var(--ink-soft); opacity: 0.6;
@@ -940,6 +953,34 @@ function setupTile(catId, slot) {
     });
   }
 
+  // Inline rename for variant name
+  const nameEl = tile.querySelector('[data-editable-name]');
+  if (nameEl) {
+    nameEl.addEventListener('click', e => {
+      e.stopPropagation();
+      if (nameEl.querySelector('input')) return;
+      const current = nameEl.textContent;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'tile-name-input';
+      input.value = current;
+      nameEl.textContent = '';
+      nameEl.appendChild(input);
+      input.focus();
+      input.select();
+
+      function commit() {
+        const newLabel = input.value;
+        renameVariant(catId, slot, newLabel);
+      }
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { input.removeEventListener('blur', commit); nameEl.textContent = current; }
+      });
+    });
+  }
+
   frame.addEventListener('dragenter', e => { e.preventDefault(); frame.classList.add('dragover'); });
   frame.addEventListener('dragover',  e => { e.preventDefault(); frame.classList.add('dragover'); });
   frame.addEventListener('dragleave', e => { if (e.target === frame) frame.classList.remove('dragover'); });
@@ -973,7 +1014,7 @@ function tileMarkup(cat, slotInfo) {
       <div class="tile-frame empty"></div>
       <div class="tile-meta">
         <div class="tile-row">
-          <span class="tile-name">${slotInfo.label}</span>
+          <span class="tile-name${isVariant ? ' tile-name-editable' : ''}" ${isVariant ? `data-editable-name="${slotInfo.slot}" title="Click to rename"` : ''}>${slotInfo.label}</span>
           <span class="tile-no">${cat.no}${isVariant ? slotInfo.file.match(/^\d+([a-z])/)?.[1] || '' : ''}</span>
         </div>
         <span class="tile-file">${slotInfo.file}</span>
@@ -1165,6 +1206,19 @@ function commitVariant(rawLabel) {
   showToast(`Added “${label}”`);
   return true;
 }
+function renameVariant(catId, slot, newLabel) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) return;
+  const v = cat.variants.find(v => v.slug === slot);
+  if (!v) return;
+  const trimmed = newLabel.trim();
+  if (!trimmed || trimmed === v.label) return;
+  v.label = trimmed;
+  reindexCategories();
+  saveCategories();
+  renderStack();
+}
+
 document.getElementById('variant-modal-cancel').addEventListener('click', closeVariantModal);
 document.getElementById('variant-modal').addEventListener('click', e => {
   if (e.target.id === 'variant-modal') closeVariantModal();
