@@ -1472,7 +1472,7 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 })();
 
 // Build reference table
-(function buildReference() {
+function buildReferenceTable() {
   const headers = `
     <div class="ref-head">No.</div>
     <div class="ref-head">Category</div>
@@ -1494,7 +1494,8 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   }).join('');
   const tbl = document.getElementById('reference-table');
   if (tbl) tbl.innerHTML = headers + rows;
-})();
+}
+buildReferenceTable();
 </script>
 
 </body>
