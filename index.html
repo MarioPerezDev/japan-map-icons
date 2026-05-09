@@ -241,10 +241,17 @@
   .modal-field input[type=text]:focus { outline: 2px solid rgba(43,37,35,0.18); border-color: rgba(43,37,35,0.4); }
   .modal-field-row { display: flex; gap: 14px; }
   .modal-field-row .modal-field { flex: 1; }
-  .modal-field input[type=color] {
-    width: 100%; height: 38px;
+  .color-pair {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .color-pair input[type=color] {
+    width: 38px; height: 38px; flex-shrink: 0;
     border: 1px solid var(--rule); border-radius: 8px;
     background: rgba(255,255,255,0.55); padding: 2px; cursor: pointer;
+  }
+  .color-pair input[type=text] {
+    flex: 1; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; letter-spacing: 0.04em;
   }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
   .modal-actions button {
@@ -502,11 +509,17 @@
     <div class="modal-field-row">
       <div class="modal-field">
         <label for="cat-primary">Symbol (ink)</label>
-        <input type="color" id="cat-primary" name="primary" value="#2F3E46" />
+        <div class="color-pair">
+          <input type="color" id="cat-primary" name="primary" value="#2F3E46" />
+          <input type="text" id="cat-primary-hex" placeholder="#2F3E46" maxlength="7" />
+        </div>
       </div>
       <div class="modal-field">
         <label for="cat-bg">Container (bg)</label>
-        <input type="color" id="cat-bg" name="bg" value="#C7D1D6" />
+        <div class="color-pair">
+          <input type="color" id="cat-bg" name="bg" value="#C7D1D6" />
+          <input type="text" id="cat-bg-hex" placeholder="#C7D1D6" maxlength="7" />
+        </div>
       </div>
     </div>
     <div class="modal-field">
@@ -1149,6 +1162,31 @@ function deleteCategory(catId) {
   if (typeof buildReferenceTable === 'function') buildReferenceTable();
   updateProgress();
 }
+
+// Sync color picker ↔ hex text input
+function syncColorPair(colorId, hexId) {
+  const colorEl = document.getElementById(colorId);
+  const hexEl   = document.getElementById(hexId);
+  // picker → hex
+  colorEl.addEventListener('input', () => { hexEl.value = colorEl.value.toUpperCase(); });
+  // hex → picker (only when value is a valid 6-digit hex)
+  hexEl.addEventListener('input', () => {
+    const v = hexEl.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) colorEl.value = v;
+  });
+  // pre-fill hex on modal open
+  colorEl.addEventListener('focus', () => { hexEl.value = colorEl.value.toUpperCase(); });
+}
+syncColorPair('cat-primary', 'cat-primary-hex');
+syncColorPair('cat-bg', 'cat-bg-hex');
+
+// Pre-fill hex fields whenever the modal opens
+const _origOpenCatModal = openCategoryModal;
+openCategoryModal = function() {
+  _origOpenCatModal();
+  document.getElementById('cat-primary-hex').value = document.getElementById('cat-primary').value.toUpperCase();
+  document.getElementById('cat-bg-hex').value = document.getElementById('cat-bg').value.toUpperCase();
+};
 
 document.getElementById('btn-add-category').addEventListener('click', openCategoryModal);
 document.getElementById('cat-modal-cancel').addEventListener('click', closeCategoryModal);
