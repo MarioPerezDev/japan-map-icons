@@ -1434,6 +1434,21 @@ async function exportSession() {
 
   showToast('Exporting session…');
   const out = await zip.generateAsync({ type: 'blob' });
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'japan-map-icons-session.zip',
+        types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(out);
+      await writable.close();
+      showToast('Session exported');
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return; // user cancelled
+    }
+  }
   downloadBlob(out, 'japan-map-icons-session.zip');
   showToast('Session exported');
 }
