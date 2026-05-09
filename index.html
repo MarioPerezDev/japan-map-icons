@@ -453,6 +453,8 @@
   <span class="progress"><strong id="progress-count">0</strong> of 13 ready</span>
   <span class="spacer"></span>
   <button id="btn-download-all" class="primary" disabled>Download all (zip)</button>
+  <button id="btn-export-session">Export session</button>
+  <button id="btn-import-session">Import session</button>
   <button id="btn-edit-config">Edit config (JSON)</button>
   <button id="btn-reset">Reset all</button>
 </div>
@@ -535,6 +537,7 @@
 </div>
 
 <input type="file" id="file-input" accept="image/png,image/svg+xml" style="display:none" />
+<input type="file" id="session-import-input" accept=".zip" style="display:none" />
 <div class="toast" id="toast"></div>
 
 <!-- JSZip for the bundle download -->
@@ -1261,6 +1264,94 @@ document.getElementById('file-input').addEventListener('change', async e => {
     await setIcon(pendingPicker.catId, file, pendingPicker.slot);
   }
   pendingPicker = null;
+  e.target.value = '';
+});
+
+// Session export / import
+async function exportSession() {
+  const zip = new JSZip();
+  const slots = [];
+  CATEGORIES.forEach(cat => {
+    slotsFor(cat).forEach(s => {
+      const payload = getPayload(cat.id, s.slot);
+      if (payload) slots.push({ catId: cat.id, slot: s.slot });
+    });
+  });
+
+  const sessionData = {
+    version: 1,
+    categories: CATEGORIES.map(c => ({
+      id: c.id, slug: c.slug, label: c.label,
+      primary: c.primary, bg: c.bg, mood: c.mood || '',
+      variants: c.variants.map(v => ({ slug: v.slug, label: v.label })),
+    })),
+    slots,
+  };
+  zip.file('session.json', JSON.stringify(sessionData, null, 2));
+
+  for (const { catId, slot } of slots) {
+    const payload = getPayload(catId, slot);
+    const res = await fetch(payload.dataUrl);
+    const blob = await res.blob();
+    zip.file(`drawings/${catId}__${slot}.png`, blob);
+  }
+
+  showToast('Exporting session…');
+  const out = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(out, 'japan-map-icons-session.zip');
+  showToast('Session exported');
+}
+
+async function importSession(file) {
+  let zip;
+  try { zip = await JSZip.loadAsync(file); }
+  catch (e) { showToast('Could not read zip file'); return; }
+
+  const sessionFile = zip.file('session.json');
+  if (!sessionFile) { showToast('No session.json found in zip'); return; }
+
+  let session;
+  try { session = JSON.parse(await sessionFile.async('string')); }
+  catch (e) { showToast('session.json is invalid JSON'); return; }
+
+  if (!session.version || !Array.isArray(session.categories) || !Array.isArray(session.slots)) {
+    showToast('Unrecognised session format'); return;
+  }
+
+  // Restore categories
+  CATEGORIES.length = 0;
+  session.categories.forEach(c => CATEGORIES.push({ ...c, variants: Array.isArray(c.variants) ? c.variants : [] }));
+  reindexCategories();
+  saveCategories();
+
+  // Clear existing state
+  Object.keys(state).forEach(k => delete state[k]);
+
+  // Restore each drawing
+  for (const { catId, slot } of session.slots) {
+    const zipEntry = zip.file(`drawings/${catId}__${slot}.png`);
+    if (!zipEntry) continue;
+    const blob = await zipEntry.async('blob');
+    const dataUrl = await fileToDataUrl(new File([blob], `${catId}__${slot}.png`, { type: 'image/png' }));
+    const bbox = await computeBbox(dataUrl);
+    const placement = placementFromBbox(bbox);
+    setPayload(catId, slot, { dataUrl, bbox, placement });
+  }
+
+  saveState();
+  renderStack();
+  if (typeof buildReferenceTable === 'function') buildReferenceTable();
+  updateProgress();
+  showToast(`Session restored — ${session.slots.length} drawing${session.slots.length === 1 ? '' : 's'}`);
+}
+
+document.getElementById('btn-export-session').addEventListener('click', exportSession);
+document.getElementById('btn-import-session').addEventListener('click', () => {
+  document.getElementById('session-import-input').click();
+});
+document.getElementById('session-import-input').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (file) await importSession(file);
   e.target.value = '';
 });
 
