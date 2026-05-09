@@ -264,6 +264,8 @@
   .modal-actions button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .modal-actions button:hover { background: rgba(43,37,35,0.06); }
   .modal-actions button.primary:hover { background: rgba(43,37,35,0.85); }
+  .modal-actions button.danger { background: #8a3a2a; color: #fff; border-color: #8a3a2a; }
+  .modal-actions button.danger:hover { background: #6e2e21; }
 
   /* Config JSON editor modal */
   .modal.modal-wide { width: 720px; max-width: calc(100vw - 32px); }
@@ -496,6 +498,17 @@
       <button type="submit" class="primary">Add variant</button>
     </div>
   </form>
+</div>
+
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <h3 id="confirm-modal-title">Delete category</h3>
+    <p class="modal-sub" id="confirm-modal-body"></p>
+    <div class="modal-actions">
+      <button type="button" id="confirm-modal-cancel">Cancel</button>
+      <button type="button" id="confirm-modal-ok" class="danger">Delete</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="cat-modal">
@@ -1147,20 +1160,51 @@ function addCategory({ name, primary, bg, mood }) {
   return true;
 }
 
+let _confirmCallback = null;
+function openConfirmModal({ title, body, onConfirm }) {
+  document.getElementById('confirm-modal-title').textContent = title;
+  document.getElementById('confirm-modal-body').textContent = body;
+  _confirmCallback = onConfirm;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  _confirmCallback = null;
+}
+document.getElementById('confirm-modal-cancel').addEventListener('click', closeConfirmModal);
+document.getElementById('confirm-modal-ok').addEventListener('click', () => {
+  const cb = _confirmCallback;
+  closeConfirmModal();
+  if (cb) cb();
+});
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target.id === 'confirm-modal') closeConfirmModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('confirm-modal').classList.contains('open')) closeConfirmModal();
+});
+
 function deleteCategory(catId) {
   const cat = CATEGORIES.find(c => c.id === catId);
   if (!cat) return;
   const slotCount = slotsFor(cat).filter(s => getPayload(catId, s.slot)).length;
-  const tail = slotCount ? ` (${slotCount} drawing${slotCount === 1 ? '' : 's'} will be lost)` : '';
-  if (!confirm(`Delete “${cat.label}”?${tail}`)) return;
-  CATEGORIES = CATEGORIES.filter(c => c.id !== catId);
-  delete state[catId];
-  reindexCategories();
-  saveCategories();
-  saveState();
-  renderStack();
-  if (typeof buildReferenceTable === 'function') buildReferenceTable();
-  updateProgress();
+  const body = slotCount
+    ? `”${cat.label}” and its ${slotCount} drawing${slotCount === 1 ? '' : 's'} will be permanently removed.`
+    : `”${cat.label}” will be permanently removed.`;
+  openConfirmModal({
+    title: 'Delete category',
+    body,
+    onConfirm: () => {
+      CATEGORIES = CATEGORIES.filter(c => c.id !== catId);
+      delete state[catId];
+      reindexCategories();
+      saveCategories();
+      saveState();
+      renderStack();
+      buildReferenceTable();
+      updateProgress();
+    },
+  });
 }
 
 // Sync color picker ↔ hex text input
